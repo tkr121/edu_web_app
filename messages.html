@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息通知与作业发布</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        neutral: '#F5F7FA',
+                        dark: '#1D2129',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(22, 93, 255, 0.1);
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-dark min-h-screen p-6">
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- 教师消息发布与作业上传 -->
+    <section class="bg-white p-6 rounded-lg card-shadow">
+        <h2 class="text-lg font-semibold text-primary mb-4">教师端 - 发布通知 / 作业</h2>
+
+        <div class="space-y-4">
+            <input id="messageTitle" type="text" placeholder="通知/作业标题"
+                   class="w-full border border-gray-300 rounded p-2 focus:border-primary focus:outline-none">
+
+            <textarea id="messageContent" rows="4" placeholder="请输入通知或作业内容"
+                      class="w-full border border-gray-300 rounded p-2 focus:border-primary focus:outline-none"></textarea>
+
+            <input id="fileUpload" type="file" class="block">
+
+            <button id="sendMessageBtn"
+                    class="bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition">发布</button>
+        </div>
+    </section>
+
+    <!-- 学生消息查看区 -->
+    <section class="bg-white p-6 rounded-lg card-shadow">
+        <h2 class="text-lg font-semibold text-primary mb-4">学生端 - 消息与作业</h2>
+
+        <div id="studentMessages" class="space-y-3">
+            <p class="text-gray-400 text-sm">暂无消息</p>
+        </div>
+    </section>
+</div>
+
+<script>
+document.getElementById('sendMessageBtn').addEventListener('click', async () => {
+    const title = document.getElementById('messageTitle').value.trim();
+    const content = document.getElementById('messageContent').value.trim();
+    const fileInput = document.getElementById('fileUpload');
+    const file = fileInput.files[0];
+
+    if (!title || !content) {
+        alert('请填写标题和内容');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    if (file) {
+        formData.append('file', file);
+    }
+
+    try {
+        // 模拟后端上传
+        console.log('发送消息:', title, content, file ? file.name : '无附件');
+
+        // 成功后刷新学生端
+        addStudentMessage({
+            title: title,
+            content: content,
+            file_url: file ? URL.createObjectURL(file) : null
+        });
+
+        // 清空表单
+        document.getElementById('messageTitle').value = '';
+        document.getElementById('messageContent').value = '';
+        fileInput.value = '';
+
+        alert('消息已发布');
+
+    } catch (error) {
+        console.error('消息发布出错', error);
+        alert('发布失败');
+    }
+});
+
+// 加载/新增消息
+function addStudentMessage(msg) {
+    const container = document.getElementById('studentMessages');
+    if (container.querySelector('p')) container.innerHTML = '';
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'p-3 bg-neutral rounded hover-lift';
+    msgEl.innerHTML = `
+        <h3 class="font-medium text-dark">${msg.title}</h3>
+        <p class="text-gray-600 text-sm">${msg.content}</p>
+        ${msg.file_url ? `<a href="${msg.file_url}" class="text-primary text-sm underline" target="_blank">下载附件</a>` : ''}
+    `;
+    container.appendChild(msgEl);
+}
+</script>
+
+</body>
+</html>
